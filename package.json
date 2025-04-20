@@ -1,19 +1,32 @@
 {
   "name": "n8n-nodes-filemanager",
-  "version": "0.2.0",
-  "description": "",
+  "version": "0.2.1",
+  "description": "Manage files and folders on disk with create, copy, move, remove, and rename operations for n8n workflows",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "n8n-nodes-filemanager",
+    "n8n-nodes",
+    "file",
+    "folder",
+    "filesystem",
+    "copy",
+    "move",
+    "remove",
+    "create",
+    "rename"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/xopoko/n8n-nodes-filemanager#readme",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "horoko",
+    "email": "cyprus.horoko@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-filemanager.git"
+    "url": "https://github.com/xopoko/n8n-nodes-filemanager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xopoko/n8n-nodes-filemanager/issues"
   },
   "engines": {
     "node": ">=18.10",

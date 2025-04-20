@@ -1,46 +1,62 @@
-![Banner image](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
+[![npm version](https://img.shields.io/npm/v/n8n-nodes-filemanager.svg)](https://www.npmjs.com/package/n8n-nodes-filemanager)
+[![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-filemanager.svg)](https://www.npmjs.com/package/n8n-nodes-filemanager)
+[![License](https://img.shields.io/npm/l/n8n-nodes-filemanager.svg)](https://github.com/xopoko/n8n-nodes-filemanager/blob/main/LICENSE.md)
 
-# n8n-nodes-starter
+# n8n-nodes-filemanager
 
-This repo contains example nodes to help you get started building your own custom integrations for [n8n](n8n.io). It includes the node linter and other dependencies.
+A community node for [n8n](https://n8n.io/) to manage files and folders on disk. Supports generic operations: create, copy, move, remove, and rename files and directories.
 
-To make your custom node available to the community, you must create it as an npm package, and [submit it to the npm registry](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry).
+## Installation
 
-## Prerequisites
+Install via npm:
+```bash
+npm install n8n-nodes-filemanager
+```
 
-You need the following installed on your development machine:
+Restart your n8n instance to load the new node.
 
-* [git](https://git-scm.com/downloads)
-* Node.js and pnpm. Minimum version Node 18. You can find instructions on how to install both using nvm (Node Version Manager) for Linux, Mac, and WSL [here](https://github.com/nvm-sh/nvm). For Windows users, refer to Microsoft's guide to [Install NodeJS on Windows](https://docs.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows).
-* Install n8n with:
-  ```
-  pnpm install n8n -g
-  ```
-* Recommended: follow n8n's guide to [set up your development environment](https://docs.n8n.io/integrations/creating-nodes/build/node-development-environment/).
+## Requirements
 
-## Using this starter
+- n8n >= 1.82.0
+- Node.js >= 18.10
 
-These are the basic steps for working with the starter. For detailed guidance on creating and publishing nodes, refer to the [documentation](https://docs.n8n.io/integrations/creating-nodes/).
+## File Manager Node
 
-1. [Generate a new repository](https://github.com/n8n-io/n8n-nodes-starter/generate) from this template repository.
-2. Clone your new repo:
-   ```
-   git clone https://github.com/<your organization>/<your-repo-name>.git
-   ```
-3. Run `pnpm i` to install dependencies.
-4. Open the project in your editor.
-5. Browse the examples in `/nodes` and `/credentials`. Modify the examples, or replace them with your own nodes.
-6. Update the `package.json` to match your details.
-7. Run `pnpm lint` to check for errors or `pnpm lintfix` to automatically fix errors when possible.
-8. Test your node locally. Refer to [Run your node locally](https://docs.n8n.io/integrations/creating-nodes/test/run-node-locally/) for guidance.
-9. Replace this README with documentation for your node. Use the [README_TEMPLATE](README_TEMPLATE.md) to get started.
-10. Update the LICENSE file to use your details.
-11. [Publish](https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry) your package to npm.
+The File Manager node provides the following operations:
 
-## More information
+- **create** — Creates a file or directory. If the path has an extension, a file is created; otherwise, a directory is created.
+- **copy** — Copies a file or directory to a new location.
+- **move** — Moves (renames) a file or directory to a new location.
+- **remove** — Deletes a file or directory. Supports recursive deletion of directories.
+- **rename** — Alias for move; renames a file or directory.
 
-Refer to our [documentation on creating nodes](https://docs.n8n.io/integrations/creating-nodes/) for detailed information on building your own nodes.
+### Node Parameters
+
+| Parameter        | Description                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`.               |
+| Source Path      | Path to the file or directory to operate on.                                        |
+| Destination Path | Target path for `copy`, `move`, and `rename` operations.                            |
+| Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
+
+### Example Usage
+
+1. Add the File Manager node to your workflow.
+2. Set **Operation** to `copy`.
+3. Enter `/tmp/example.txt` as **Source Path**.
+4. Enter `/tmp/example-copy.txt` as **Destination Path**.
+5. Execute the workflow to copy the file.
+
+## Version History
+
+- **v0.2.1** — Patch release: version bump.
+- **v0.2.0** — Breaking change: generic operations; auto-detect file or directory. Removed separate file/folder parameters.
+- **v0.1.0** — Initial release with separate file and folder operations.
+
+## Contributing
+
+Contributions welcome! Please open issues and submit pull requests on [GitHub](https://github.com/xopoko/n8n-nodes-filemanager).
 
 ## License
 
-[MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
+MIT © horoko
