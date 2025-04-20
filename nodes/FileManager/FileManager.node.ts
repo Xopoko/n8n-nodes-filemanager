@@ -4,6 +4,7 @@ import type {
   INodeType,
   INodeTypeDescription,
 } from 'n8n-workflow';
+import { NodeConnectionType } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { promises as fs } from 'fs';
 import * as path from 'path';
@@ -24,6 +25,7 @@ export class FileManager implements INodeType {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
+								noDataExpression: true,
         options: [
           { name: 'Remove File', value: 'removeFile' },
           { name: 'Remove Folder', value: 'removeFolder' },
@@ -31,9 +33,11 @@ export class FileManager implements INodeType {
           { name: 'Copy Folder', value: 'copyFolder' },
           { name: 'Move File', value: 'moveFile' },
           { name: 'Move Folder', value: 'moveFolder' },
+          { name: 'Create Folder', value: 'createFolder' },
+          { name: 'Create File', value: 'createFile' },
+          { name: 'Rename', value: 'rename' },
         ],
         default: 'removeFile',
-        description: 'Operation to perform',
       },
       {
         displayName: 'Source Path',
@@ -59,6 +63,7 @@ export class FileManager implements INodeType {
               'copyFolder',
               'moveFile',
               'moveFolder',
+              'rename',
             ],
           },
         },
@@ -113,7 +118,24 @@ export class FileManager implements INodeType {
               'destinationPath',
               i,
             ) as string;
-            await this.copyDir(sourcePath, destinationPath);
+            // Implement directory copying functionality directly
+            const copyDirectory = async (src: string, dest: string): Promise<void> => {
+              await fs.mkdir(dest, { recursive: true });
+              const entries = await fs.readdir(src, { withFileTypes: true });
+              for (const entry of entries) {
+                const srcPath = path.join(src, entry.name);
+                const destPath = path.join(dest, entry.name);
+                if (entry.isDirectory()) {
+                  await copyDirectory(srcPath, destPath);
+                } else if (entry.isSymbolicLink()) {
+                  const symlink = await fs.readlink(srcPath);
+                  await fs.symlink(symlink, destPath);
+                } else if (entry.isFile()) {
+                  await fs.copyFile(srcPath, destPath);
+                }
+              }
+            };
+            await copyDirectory(sourcePath, destinationPath);
             break;
           }
           case 'moveFile': {
@@ -125,6 +147,22 @@ export class FileManager implements INodeType {
             break;
           }
           case 'moveFolder': {
+            const destinationPath = this.getNodeParameter(
+              'destinationPath',
+              i,
+            ) as string;
+            await fs.rename(sourcePath, destinationPath);
+            break;
+          }
+          case 'createFolder': {
+            await fs.mkdir(sourcePath, { recursive: true });
+            break;
+          }
+          case 'createFile': {
+            await fs.writeFile(sourcePath, '', 'utf8');
+            break;
+          }
+          case 'rename': {
             const destinationPath = this.getNodeParameter(
               'destinationPath',
               i,
@@ -144,7 +182,7 @@ export class FileManager implements INodeType {
         items[i].json.sourcePath = sourcePath;
         items[i].json.success = true;
         if (
-          ['copyFile', 'copyFolder', 'moveFile', 'moveFolder'].includes(
+          ['copyFile', 'copyFolder', 'moveFile', 'moveFolder', 'rename'].includes(
             operation,
           )
         ) {
@@ -175,20 +213,4 @@ export class FileManager implements INodeType {
     return [items];
   }
 
-  private async copyDir(source: string, destination: string): Promise<void> {
-    await fs.mkdir(destination, { recursive: true });
-    const entries = await fs.readdir(source, { withFileTypes: true });
-    for (const entry of entries) {
-      const srcPath = path.join(source, entry.name);
-      const destPath = path.join(destination, entry.name);
-      if (entry.isDirectory()) {
-        await this.copyDir(srcPath, destPath);
-      } else if (entry.isSymbolicLink()) {
-        const symlink = await fs.readlink(srcPath);
-        await fs.symlink(symlink, destPath);
-      } else if (entry.isFile()) {
-        await fs.copyFile(srcPath, destPath);
-      }
-    }
-  }
 }
