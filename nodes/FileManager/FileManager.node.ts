@@ -18,26 +18,24 @@ export class FileManager implements INodeType {
     version: 1,
     description: 'Manage files and folders on disk',
     defaults: { name: 'File Manager' },
-    inputs: ['main'],
-    outputs: ['main'],
+    // eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
+    inputs: [NodeConnectionType.Main],
+    // eslint-disable-next-line n8n-nodes-base/node-class-description-outputs-wrong
+    outputs: [NodeConnectionType.Main],
     properties: [
       {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
-								noDataExpression: true,
+        noDataExpression: true,
         options: [
-          { name: 'Remove File', value: 'removeFile' },
-          { name: 'Remove Folder', value: 'removeFolder' },
-          { name: 'Copy File', value: 'copyFile' },
-          { name: 'Copy Folder', value: 'copyFolder' },
-          { name: 'Move File', value: 'moveFile' },
-          { name: 'Move Folder', value: 'moveFolder' },
-          { name: 'Create Folder', value: 'createFolder' },
-          { name: 'Create File', value: 'createFile' },
+          { name: 'Copy', value: 'copy' },
+          { name: 'Create', value: 'create' },
+          { name: 'Move', value: 'move' },
+          { name: 'Remove', value: 'remove' },
           { name: 'Rename', value: 'rename' },
         ],
-        default: 'removeFile',
+        default: 'remove',
       },
       {
         displayName: 'Source Path',
@@ -54,17 +52,11 @@ export class FileManager implements INodeType {
         type: 'string',
         default: '',
         placeholder: '/path/to/destination',
-        description: 'Path to copy or move to',
+        description: 'Path to copy, move, or rename to',
         required: true,
         displayOptions: {
           show: {
-            operation: [
-              'copyFile',
-              'copyFolder',
-              'moveFile',
-              'moveFolder',
-              'rename',
-            ],
+            operation: ['copy', 'move', 'rename'],
           },
         },
       },
@@ -73,10 +65,10 @@ export class FileManager implements INodeType {
         name: 'recursive',
         type: 'boolean',
         default: true,
-        description: 'Delete folders recursively',
+        description: 'Whether to delete folders recursively',
         displayOptions: {
           show: {
-            operation: ['removeFolder'],
+            operation: ['remove'],
           },
         },
       },
@@ -91,105 +83,97 @@ export class FileManager implements INodeType {
         const sourcePath = this.getNodeParameter('sourcePath', i) as string;
 
         switch (operation) {
-          case 'removeFile':
-            await fs.unlink(sourcePath);
-            break;
-          case 'removeFolder': {
-            const recursive = this.getNodeParameter('recursive', i) as boolean;
-            if (recursive) {
-              // Remove folder and its contents
-              // @ts-ignore
-              await fs.rm(sourcePath, { recursive: true, force: true });
+          case 'remove': {
+            // Determine if source is a directory
+            let isDir = false;
+            try {
+              const stats = await fs.lstat(sourcePath);
+              isDir = stats.isDirectory();
+            } catch {
+              isDir = false;
+            }
+
+            if (isDir) {
+              const recursive = this.getNodeParameter('recursive', i) as boolean;
+              if (recursive) {
+                // @ts-ignore
+                await fs.rm(sourcePath, { recursive: true, force: true });
+              } else {
+                await fs.rmdir(sourcePath);
+              }
             } else {
-              await fs.rmdir(sourcePath);
+              await fs.unlink(sourcePath);
             }
             break;
           }
-          case 'copyFile': {
-            const destinationPath = this.getNodeParameter(
-              'destinationPath',
-              i,
-            ) as string;
-            await fs.copyFile(sourcePath, destinationPath);
-            break;
-          }
-          case 'copyFolder': {
-            const destinationPath = this.getNodeParameter(
-              'destinationPath',
-              i,
-            ) as string;
-            // Implement directory copying functionality directly
-            const copyDirectory = async (src: string, dest: string): Promise<void> => {
-              await fs.mkdir(dest, { recursive: true });
-              const entries = await fs.readdir(src, { withFileTypes: true });
-              for (const entry of entries) {
-                const srcPath = path.join(src, entry.name);
-                const destPath = path.join(dest, entry.name);
-                if (entry.isDirectory()) {
-                  await copyDirectory(srcPath, destPath);
-                } else if (entry.isSymbolicLink()) {
-                  const symlink = await fs.readlink(srcPath);
-                  await fs.symlink(symlink, destPath);
-                } else if (entry.isFile()) {
-                  await fs.copyFile(srcPath, destPath);
+
+          case 'copy': {
+            const destinationPath = this.getNodeParameter('destinationPath', i) as string;
+            // Determine if source is a directory
+            let isDir = false;
+            try {
+              const stats = await fs.lstat(sourcePath);
+              isDir = stats.isDirectory();
+            } catch {
+              isDir = false;
+            }
+
+            if (isDir) {
+              const copyDirectory = async (src: string, dest: string): Promise<void> => {
+                await fs.mkdir(dest, { recursive: true });
+                const entries = await fs.readdir(src, { withFileTypes: true });
+                for (const entry of entries) {
+                  const srcPath = path.join(src, entry.name);
+                  const destPath = path.join(dest, entry.name);
+                  if (entry.isDirectory()) {
+                    await copyDirectory(srcPath, destPath);
+                  } else if (entry.isSymbolicLink()) {
+                    const symlink = await fs.readlink(srcPath);
+                    await fs.symlink(symlink, destPath);
+                  } else {
+                    await fs.copyFile(srcPath, destPath);
+                  }
                 }
-              }
-            };
-            await copyDirectory(sourcePath, destinationPath);
+              };
+              await copyDirectory(sourcePath, destinationPath);
+            } else {
+              await fs.copyFile(sourcePath, destinationPath);
+            }
             break;
           }
-          case 'moveFile': {
-            const destinationPath = this.getNodeParameter(
-              'destinationPath',
-              i,
-            ) as string;
+
+          case 'move': {
+            const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             await fs.rename(sourcePath, destinationPath);
             break;
           }
-          case 'moveFolder': {
-            const destinationPath = this.getNodeParameter(
-              'destinationPath',
-              i,
-            ) as string;
-            await fs.rename(sourcePath, destinationPath);
+
+          case 'create': {
+            const ext = path.extname(sourcePath);
+            if (ext) {
+              await fs.writeFile(sourcePath, '', 'utf8');
+            } else {
+              await fs.mkdir(sourcePath, { recursive: true });
+            }
             break;
           }
-          case 'createFolder': {
-            await fs.mkdir(sourcePath, { recursive: true });
-            break;
-          }
-          case 'createFile': {
-            await fs.writeFile(sourcePath, '', 'utf8');
-            break;
-          }
+
           case 'rename': {
-            const destinationPath = this.getNodeParameter(
-              'destinationPath',
-              i,
-            ) as string;
+            const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             await fs.rename(sourcePath, destinationPath);
             break;
           }
+
           default:
-            throw new NodeOperationError(
-              this.getNode(),
-              `Unknown operation "${operation}"`,
-            );
+            throw new NodeOperationError(this.getNode(), `Unknown operation "${operation}"`);
         }
 
         // Prepare output data
         items[i].json.operation = operation;
         items[i].json.sourcePath = sourcePath;
         items[i].json.success = true;
-        if (
-          ['copyFile', 'copyFolder', 'moveFile', 'moveFolder', 'rename'].includes(
-            operation,
-          )
-        ) {
-          items[i].json.destinationPath = this.getNodeParameter(
-            'destinationPath',
-            i,
-          ) as string;
+        if (['copy', 'move', 'rename'].includes(operation)) {
+          items[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
         }
       } catch (error) {
         if (this.continueOnFail()) {
