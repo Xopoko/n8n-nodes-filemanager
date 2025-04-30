@@ -178,7 +178,7 @@ export class FileManager implements INodeType {
       } catch (error) {
         if (this.continueOnFail()) {
           items.push({
-            json: this.getInputData(i)[0].json,
+            json: items[i].json,
             error,
             pairedItem: i,
           });
