@@ -76,8 +76,9 @@ export class FileManager implements INodeType {
   };
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-    const items = this.getInputData();
-    for (let i = 0; i < items.length; i++) {
+    const inputItems = this.getInputData();
+    const returnItems: INodeExecutionData[] = [];
+    for (let i = 0; i < inputItems.length; i++) {
       try {
         const operation = this.getNodeParameter('operation', i) as string;
         const sourcePath = this.getNodeParameter('sourcePath', i) as string;
@@ -169,16 +170,17 @@ export class FileManager implements INodeType {
         }
 
         // Prepare output data
-        items[i].json.operation = operation;
-        items[i].json.sourcePath = sourcePath;
-        items[i].json.success = true;
+        inputItems[i].json.operation = operation;
+        inputItems[i].json.sourcePath = sourcePath;
+        inputItems[i].json.success = true;
         if (['copy', 'move', 'rename'].includes(operation)) {
-          items[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
+          inputItems[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
         }
+        returnItems.push(inputItems[i]);
       } catch (error) {
         if (this.continueOnFail()) {
-          items.push({
-            json: items[i].json,
+          returnItems.push({
+            json: inputItems[i].json,
             error,
             pairedItem: i,
           });
@@ -194,7 +196,7 @@ export class FileManager implements INodeType {
         );
       }
     }
-    return [items];
+    return [returnItems];
   }
 
 }
