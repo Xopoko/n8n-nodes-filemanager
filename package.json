@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-filemanager",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Manage files and folders on disk with create, copy, move, remove, and rename operations for n8n workflows",
   "keywords": [
     "n8n-community-node-package",
