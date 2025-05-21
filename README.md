@@ -29,15 +29,23 @@ The File Manager node provides the following operations:
 - **move** — Moves (renames) a file or directory to a new location.
 - **remove** — Deletes a file or directory. Supports recursive deletion of directories.
 - **rename** — Alias for move; renames a file or directory.
+- **read** — Reads the contents of a file.
+- **write** — Writes data to a file, replacing the existing contents.
+- **append** — Appends data to the end of a file.
+- **list** — Lists the entries of a directory.
+- **exists** — Checks if a path exists.
 
 ### Node Parameters
 
 | Parameter        | Description                                                                         |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`.               |
-| Source Path      | Path to the file or directory to operate on.                                        |
-| Destination Path | Target path for `copy`, `move`, and `rename` operations.                            |
+| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `list`, `exists`. |
+| Source Path      | Path to the file or directory to operate on. |
+| Destination Path | Target path for `copy`, `move`, and `rename` operations. |
 | Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
+| Target Path      | Path for `read`, `write`, `append`, `list`, and `exists` operations. |
+| Data             | Content to use for `write` and `append` operations. |
+| Encoding         | File encoding for `read`, `write`, and `append` (default: `utf8`). |
 
 ### Example Usage
 

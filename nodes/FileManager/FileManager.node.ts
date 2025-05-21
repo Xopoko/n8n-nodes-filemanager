@@ -29,11 +29,16 @@ export class FileManager implements INodeType {
         type: 'options',
         noDataExpression: true,
         options: [
+          { name: 'Append', value: 'append' },
           { name: 'Copy', value: 'copy' },
           { name: 'Create', value: 'create' },
+          { name: 'Exists', value: 'exists' },
+          { name: 'List', value: 'list' },
           { name: 'Move', value: 'move' },
+          { name: 'Read', value: 'read' },
           { name: 'Remove', value: 'remove' },
           { name: 'Rename', value: 'rename' },
+          { name: 'Write', value: 'write' },
         ],
         default: 'remove',
       },
@@ -72,6 +77,44 @@ export class FileManager implements INodeType {
           },
         },
       },
+      {
+        displayName: 'Target Path',
+        name: 'targetPath',
+        type: 'string',
+        default: '',
+        placeholder: '/path/to/target',
+        description: 'Path of the file or folder to operate on',
+        required: true,
+        displayOptions: {
+          show: {
+            operation: ['read', 'write', 'append', 'list', 'exists'],
+          },
+        },
+      },
+      {
+        displayName: 'Data',
+        name: 'data',
+        type: 'string',
+        default: '',
+        description: 'Content to write or append to the file',
+        displayOptions: {
+          show: {
+            operation: ['write', 'append'],
+          },
+        },
+      },
+      {
+        displayName: 'Encoding',
+        name: 'encoding',
+        type: 'string',
+        default: 'utf8',
+        description: 'File encoding',
+        displayOptions: {
+          show: {
+            operation: ['read', 'write', 'append'],
+          },
+        },
+      },
     ],
   };
 
@@ -81,10 +124,10 @@ export class FileManager implements INodeType {
     for (let i = 0; i < inputItems.length; i++) {
       try {
         const operation = this.getNodeParameter('operation', i) as string;
-        const sourcePath = this.getNodeParameter('sourcePath', i) as string;
 
         switch (operation) {
           case 'remove': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             // Determine if source is a directory
             let isDir = false;
             try {
@@ -109,6 +152,7 @@ export class FileManager implements INodeType {
           }
 
           case 'copy': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             // Determine if source is a directory
             let isDir = false;
@@ -144,12 +188,14 @@ export class FileManager implements INodeType {
           }
 
           case 'move': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             await fs.rename(sourcePath, destinationPath);
             break;
           }
 
           case 'create': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const ext = path.extname(sourcePath);
             if (ext) {
               await fs.writeFile(sourcePath, '', 'utf8');
@@ -160,8 +206,57 @@ export class FileManager implements INodeType {
           }
 
           case 'rename': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             await fs.rename(sourcePath, destinationPath);
+            break;
+          }
+
+          case 'read': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const encoding = this.getNodeParameter('encoding', i) as BufferEncoding;
+            const data = await fs.readFile(targetPath, { encoding });
+            inputItems[i].json.data = data;
+            inputItems[i].json.targetPath = targetPath;
+            break;
+          }
+
+          case 'write': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const content = this.getNodeParameter('data', i) as string;
+            const encoding = this.getNodeParameter('encoding', i) as BufferEncoding;
+            await fs.writeFile(targetPath, content, { encoding });
+            inputItems[i].json.targetPath = targetPath;
+            break;
+          }
+
+          case 'append': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const content = this.getNodeParameter('data', i) as string;
+            const encoding = this.getNodeParameter('encoding', i) as BufferEncoding;
+            await fs.appendFile(targetPath, content, { encoding });
+            inputItems[i].json.targetPath = targetPath;
+            break;
+          }
+
+          case 'list': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const files = await fs.readdir(targetPath);
+            inputItems[i].json.list = files;
+            inputItems[i].json.targetPath = targetPath;
+            break;
+          }
+
+          case 'exists': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            let exists = true;
+            try {
+              await fs.access(targetPath);
+            } catch {
+              exists = false;
+            }
+            inputItems[i].json.exists = exists;
+            inputItems[i].json.targetPath = targetPath;
             break;
           }
 
@@ -171,10 +266,15 @@ export class FileManager implements INodeType {
 
         // Prepare output data
         inputItems[i].json.operation = operation;
-        inputItems[i].json.sourcePath = sourcePath;
         inputItems[i].json.success = true;
+        if (['copy', 'move', 'rename', 'remove', 'create'].includes(operation)) {
+          inputItems[i].json.sourcePath = this.getNodeParameter('sourcePath', i) as string;
+        }
         if (['copy', 'move', 'rename'].includes(operation)) {
           inputItems[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
+        }
+        if (['read', 'write', 'append', 'list', 'exists'].includes(operation)) {
+          inputItems[i].json.targetPath = this.getNodeParameter('targetPath', i) as string;
         }
         returnItems.push(inputItems[i]);
       } catch (error) {

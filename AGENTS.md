@@ -8,6 +8,7 @@ This repository contains a **File Manager** community node for n8n. It exposes o
 - The environment does **not** have network access after setup. Avoid commands that fetch packages such as `npm install`.
 - Commands for PHP or Swift are unavailable; do not run `php`, `swift build` or their respective test commands.
 - Update this `AGENTS.md` file whenever repository guidelines change so agents always have the latest instructions.
+- When adding option arrays with five or more entries, **alphabetize them by `name`**. The `n8n-nodes-base/node-param-options-type-unsorted-items` rule will fail the lint step otherwise. Running `npm run lint -- --fix` can reorder them automatically.
 
 ## Using the File Manager Node with AI
 
