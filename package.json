@@ -40,7 +40,7 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "test": "echo \"No tests specified\"",
+    "test": "npm run build && node --test",
     "coverage": "mkdir -p coverage && echo 'no coverage' > coverage/placeholder.txt",
     "prepublishOnly": "npm run build && npm run lint -- -c .eslintrc.prepublish.js nodes"
   },
