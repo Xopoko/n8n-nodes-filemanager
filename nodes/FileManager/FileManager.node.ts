@@ -6,8 +6,10 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionType } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { promises as fs } from 'fs';
+import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
+import { spawn } from 'child_process';
+import { createGunzip } from 'zlib';
 
 export class FileManager implements INodeType {
   description: INodeTypeDescription = {
@@ -31,9 +33,11 @@ export class FileManager implements INodeType {
         options: [
           { name: 'Append', value: 'append' },
           { name: 'Change Permissions', value: 'chmod' },
+          { name: 'Compress', value: 'compress' },
           { name: 'Copy', value: 'copy' },
           { name: 'Create', value: 'create' },
           { name: 'Exists', value: 'exists' },
+          { name: 'Extract', value: 'extract' },
           { name: 'List', value: 'list' },
           { name: 'Metadata', value: 'metadata' },
           { name: 'Move', value: 'move' },
@@ -59,11 +63,11 @@ export class FileManager implements INodeType {
         type: 'string',
         default: '',
         placeholder: '/path/to/destination',
-        description: 'Path to copy, move, or rename to',
+        description: 'Target path for copy, move, rename, compress, and extract operations',
         required: true,
         displayOptions: {
           show: {
-            operation: ['copy', 'move', 'rename'],
+            operation: ['compress', 'copy', 'extract', 'move', 'rename'],
           },
         },
       },
@@ -208,6 +212,40 @@ export class FileManager implements INodeType {
             break;
           }
 
+          case 'compress': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
+            const destinationPath = this.getNodeParameter('destinationPath', i) as string;
+            await new Promise<void>((resolve, reject) => {
+              const tar = spawn('tar', ['-czf', destinationPath, path.basename(sourcePath)], {
+                cwd: path.dirname(sourcePath),
+              });
+              tar.on('error', reject);
+              tar.on('close', (code) => {
+                if (code !== 0) reject(new Error(`tar exited with code ${code}`));
+                else resolve();
+              });
+            });
+            break;
+          }
+
+          case 'extract': {
+            const sourcePath = this.getNodeParameter('sourcePath', i) as string;
+            const destinationPath = this.getNodeParameter('destinationPath', i) as string;
+            await fs.mkdir(destinationPath, { recursive: true });
+            await new Promise<void>((resolve, reject) => {
+              const input = createReadStream(sourcePath);
+              const gunzip = createGunzip();
+              const tar = spawn('tar', ['-xf', '-', '-C', destinationPath]);
+              tar.on('error', reject);
+              tar.on('close', (code) => {
+                if (code !== 0) reject(new Error(`tar exited with code ${code}`));
+                else resolve();
+              });
+              input.pipe(gunzip).pipe(tar.stdin).on('error', reject);
+            });
+            break;
+          }
+
           case 'create': {
             const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const ext = path.extname(sourcePath);
@@ -302,10 +340,10 @@ export class FileManager implements INodeType {
         // Prepare output data
         inputItems[i].json.operation = operation;
         inputItems[i].json.success = true;
-        if (['copy', 'move', 'rename', 'remove', 'create'].includes(operation)) {
+        if (['compress', 'copy', 'extract', 'move', 'rename', 'remove', 'create'].includes(operation)) {
           inputItems[i].json.sourcePath = this.getNodeParameter('sourcePath', i) as string;
         }
-        if (['copy', 'move', 'rename'].includes(operation)) {
+        if (['compress', 'copy', 'extract', 'move', 'rename'].includes(operation)) {
           inputItems[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
         }
         if (['read', 'write', 'append', 'list', 'exists', 'metadata', 'chmod'].includes(operation)) {

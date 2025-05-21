@@ -117,3 +117,21 @@ test('chmod file', async () => {
   assert.strictEqual(mode, 0o600);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('compress and extract directory', async () => {
+  const dir = tmpDir();
+  const srcDir = path.join(dir, 'src');
+  const dstDir = path.join(dir, 'dst');
+  const archive = path.join(dir, 'archive.tar.gz');
+  fs.mkdirSync(srcDir);
+  const file = path.join(srcDir, 'hello.txt');
+  fs.writeFileSync(file, 'hi');
+
+  await runNode([{ operation: 'compress', sourcePath: srcDir, destinationPath: archive }]);
+  assert.ok(fs.existsSync(archive));
+
+  await runNode([{ operation: 'extract', sourcePath: archive, destinationPath: dstDir }]);
+  const extracted = path.join(dstDir, 'src', 'hello.txt');
+  assert.strictEqual(fs.readFileSync(extracted, 'utf8'), 'hi');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
