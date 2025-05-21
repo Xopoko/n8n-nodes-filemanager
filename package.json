@@ -29,7 +29,7 @@
     "url": "https://github.com/xopoko/n8n-nodes-filemanager/issues"
   },
   "engines": {
-    "node": ">=18.10",
+    "node": ">=20.15",
     "npm": ">=9.1"
   },
   "packageManager": "npm@9.1.4",
@@ -40,6 +40,7 @@
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes",
     "lintfix": "eslint nodes credentials package.json --fix",
+    "test": "echo \"No tests specified\"",
     "prepublishOnly": "npm run build && npm run lint -- -c .eslintrc.prepublish.js nodes"
   },
   "files": [
@@ -52,7 +53,7 @@
     ]
   },
   "devDependencies": {
-    "@types/node": "^22.14.1",
+    "@types/node": "^20.17.50",
     "@typescript-eslint/parser": "^7.15.0",
     "eslint": "^8.56.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.1",
