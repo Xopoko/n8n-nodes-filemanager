@@ -216,16 +216,14 @@ export class FileManager implements INodeType {
             const sourcePath = this.getNodeParameter('sourcePath', i) as string;
             const destinationPath = this.getNodeParameter('destinationPath', i) as string;
             await new Promise<void>((resolve, reject) => {
-              const output = createWriteStream(destinationPath);
-              const gzip = createGzip();
-              const tar = spawn('tar', ['-cf', '-', path.basename(sourcePath)], {
+              const tar = spawn('tar', ['-czf', destinationPath, path.basename(sourcePath)], {
                 cwd: path.dirname(sourcePath),
               });
               tar.on('error', reject);
               tar.on('close', (code) => {
                 if (code !== 0) reject(new Error(`tar exited with code ${code}`));
+                else resolve();
               });
-              tar.stdout.pipe(gzip).pipe(output).on('finish', resolve).on('error', reject);
             });
             break;
           }
