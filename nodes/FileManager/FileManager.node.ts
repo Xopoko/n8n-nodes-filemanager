@@ -34,6 +34,7 @@ export class FileManager implements INodeType {
           { name: 'Create', value: 'create' },
           { name: 'Exists', value: 'exists' },
           { name: 'List', value: 'list' },
+          { name: 'Metadata', value: 'metadata' },
           { name: 'Move', value: 'move' },
           { name: 'Read', value: 'read' },
           { name: 'Remove', value: 'remove' },
@@ -87,7 +88,7 @@ export class FileManager implements INodeType {
         required: true,
         displayOptions: {
           show: {
-            operation: ['read', 'write', 'append', 'list', 'exists'],
+            operation: ['read', 'write', 'append', 'list', 'exists', 'metadata'],
           },
         },
       },
@@ -260,6 +261,18 @@ export class FileManager implements INodeType {
             break;
           }
 
+          case 'metadata': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const stats = await fs.lstat(targetPath);
+            inputItems[i].json.size = stats.size;
+            inputItems[i].json.mtime = stats.mtime;
+            inputItems[i].json.atime = stats.atime;
+            inputItems[i].json.isDirectory = stats.isDirectory();
+            inputItems[i].json.isFile = stats.isFile();
+            inputItems[i].json.targetPath = targetPath;
+            break;
+          }
+
           default:
             throw new NodeOperationError(this.getNode(), `Unknown operation "${operation}"`);
         }
@@ -273,7 +286,7 @@ export class FileManager implements INodeType {
         if (['copy', 'move', 'rename'].includes(operation)) {
           inputItems[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
         }
-        if (['read', 'write', 'append', 'list', 'exists'].includes(operation)) {
+        if (['read', 'write', 'append', 'list', 'exists', 'metadata'].includes(operation)) {
           inputItems[i].json.targetPath = this.getNodeParameter('targetPath', i) as string;
         }
         returnItems.push(inputItems[i]);

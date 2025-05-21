@@ -34,16 +34,17 @@ The File Manager node provides the following operations:
 - **append** — Appends data to the end of a file.
 - **list** — Lists the entries of a directory.
 - **exists** — Checks if a path exists.
+- **metadata** — Returns metadata for a file or directory.
 
 ### Node Parameters
 
 | Parameter        | Description                                                                         |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `list`, `exists`. |
+| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `list`, `exists`, `metadata`. |
 | Source Path      | Path to the file or directory to operate on. |
 | Destination Path | Target path for `copy`, `move`, and `rename` operations. |
 | Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
-| Target Path      | Path for `read`, `write`, `append`, `list`, and `exists` operations. |
+| Target Path      | Path for `read`, `write`, `append`, `list`, `exists`, and `metadata` operations. |
 | Data             | Content to use for `write` and `append` operations. |
 | Encoding         | File encoding for `read`, `write`, and `append` (default: `utf8`). |
 

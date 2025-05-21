@@ -94,3 +94,16 @@ test('exists path', async () => {
   assert.strictEqual(res2.json.exists, false);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('metadata path', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'meta.txt');
+  fs.writeFileSync(file, 'hello');
+  const [[res]] = await runNode([{ operation: 'metadata', targetPath: file }]);
+  assert.strictEqual(res.json.size, 5);
+  assert.strictEqual(res.json.isFile, true);
+  assert.strictEqual(res.json.isDirectory, false);
+  assert.ok(res.json.mtime);
+  assert.ok(res.json.atime);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
