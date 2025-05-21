@@ -63,7 +63,7 @@ export class FileManager implements INodeType {
         type: 'string',
         default: '',
         placeholder: '/path/to/destination',
-        description: 'Path to copy, move, rename, compress to, or extract to',
+        description: 'Target path for copy, move, rename, compress, and extract operations',
         required: true,
         displayOptions: {
           show: {
