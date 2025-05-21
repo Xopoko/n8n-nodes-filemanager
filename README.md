@@ -4,7 +4,7 @@
 
 # n8n-nodes-filemanager
 
-A community node for [n8n](https://n8n.io/) to manage files and folders on disk. Supports generic operations: create, copy, move, remove, and rename files and directories.
+A community node for [n8n](https://n8n.io/) to manage files and folders on disk. Supports generic operations: create, copy, move, remove, rename, compress, and extract files and directories.
 
 ## Installation
 
@@ -26,8 +26,10 @@ The File Manager node provides the following operations:
 
 - **create** — Creates a file or directory. If the path has an extension, a file is created; otherwise, a directory is created.
 - **copy** — Copies a file or directory to a new location.
+- **compress** — Archives a file or directory into a `.tar.gz` file.
 - **move** — Moves (renames) a file or directory to a new location.
 - **remove** — Deletes a file or directory. Supports recursive deletion of directories.
+- **extract** — Extracts a `.tar.gz` archive into a directory.
 - **rename** — Alias for move; renames a file or directory.
 - **read** — Reads the contents of a file.
 - **write** — Writes data to a file, replacing the existing contents.
@@ -41,9 +43,9 @@ The File Manager node provides the following operations:
 
 | Parameter        | Description                                                                         |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `change permissions`, `list`, `exists`, `metadata`. |
+| Operation        | The action to perform: `append`, `change permissions`, `compress`, `copy`, `create`, `exists`, `extract`, `list`, `metadata`, `move`, `read`, `remove`, `rename`, `write`. |
 | Source Path      | Path to the file or directory to operate on. |
-| Destination Path | Target path for `copy`, `move`, and `rename` operations. |
+| Destination Path | Target path for `copy`, `move`, `rename`, `compress`, and `extract` operations. |
 | Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
 | Target Path      | Path for `read`, `write`, `append`, `change permissions`, `list`, `exists`, and `metadata` operations. |
 | Data             | Content to use for `write` and `append` operations. |
