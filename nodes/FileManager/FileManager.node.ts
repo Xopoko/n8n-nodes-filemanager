@@ -6,10 +6,10 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionType } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { promises as fs, createWriteStream, createReadStream } from 'fs';
+import { promises as fs, createReadStream } from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
-import { createGzip, createGunzip } from 'zlib';
+import { createGunzip } from 'zlib';
 
 export class FileManager implements INodeType {
   description: INodeTypeDescription = {
