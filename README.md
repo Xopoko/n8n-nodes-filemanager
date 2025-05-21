@@ -18,7 +18,7 @@ Restart your n8n instance to load the new node.
 ## Requirements
 
 - n8n >= 1.82.0
-- Node.js >= 18.10
+- Node.js >= 20.15
 
 ## File Manager Node
 
