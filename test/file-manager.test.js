@@ -107,3 +107,13 @@ test('metadata path', async () => {
   assert.ok(res.json.atime);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('chmod file', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'chmod.txt');
+  fs.writeFileSync(file, 'perm');
+  await runNode([{ operation: 'chmod', targetPath: file, mode: 0o600 }]);
+  const mode = fs.statSync(file).mode & 0o777;
+  assert.strictEqual(mode, 0o600);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

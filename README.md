@@ -32,6 +32,7 @@ The File Manager node provides the following operations:
 - **read** — Reads the contents of a file.
 - **write** — Writes data to a file, replacing the existing contents.
 - **append** — Appends data to the end of a file.
+- **change permissions** — Updates the mode bits of a file or directory.
 - **list** — Lists the entries of a directory.
 - **exists** — Checks if a path exists.
 - **metadata** — Returns metadata for a file or directory.
@@ -40,13 +41,14 @@ The File Manager node provides the following operations:
 
 | Parameter        | Description                                                                         |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `list`, `exists`, `metadata`. |
+| Operation        | The action to perform: `create`, `copy`, `move`, `remove`, `rename`, `read`, `write`, `append`, `change permissions`, `list`, `exists`, `metadata`. |
 | Source Path      | Path to the file or directory to operate on. |
 | Destination Path | Target path for `copy`, `move`, and `rename` operations. |
 | Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
-| Target Path      | Path for `read`, `write`, `append`, `list`, `exists`, and `metadata` operations. |
+| Target Path      | Path for `read`, `write`, `append`, `change permissions`, `list`, `exists`, and `metadata` operations. |
 | Data             | Content to use for `write` and `append` operations. |
 | Encoding         | File encoding for `read`, `write`, and `append` (default: `utf8`). |
+| Mode             | Numeric mode for `change permissions` (default: `0o644`). |
 
 ### Example Usage
 
@@ -55,6 +57,7 @@ The File Manager node provides the following operations:
 3. Enter `/tmp/example.txt` as **Source Path**.
 4. Enter `/tmp/example-copy.txt` as **Destination Path**.
 5. Execute the workflow to copy the file.
+6. To change permissions, set **Operation** to `change permissions`, provide a **Target Path**, and specify the numeric **Mode** (for example, `0o600`).
 
 ## Version History
 

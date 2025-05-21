@@ -30,6 +30,7 @@ export class FileManager implements INodeType {
         noDataExpression: true,
         options: [
           { name: 'Append', value: 'append' },
+          { name: 'Change Permissions', value: 'chmod' },
           { name: 'Copy', value: 'copy' },
           { name: 'Create', value: 'create' },
           { name: 'Exists', value: 'exists' },
@@ -88,7 +89,7 @@ export class FileManager implements INodeType {
         required: true,
         displayOptions: {
           show: {
-            operation: ['read', 'write', 'append', 'list', 'exists', 'metadata'],
+            operation: ['read', 'write', 'append', 'list', 'exists', 'metadata', 'chmod'],
           },
         },
       },
@@ -113,6 +114,18 @@ export class FileManager implements INodeType {
         displayOptions: {
           show: {
             operation: ['read', 'write', 'append'],
+          },
+        },
+      },
+      {
+        displayName: 'Mode',
+        name: 'mode',
+        type: 'number',
+        default: 0o644,
+        description: 'Unix permission bits, e.g. 644',
+        displayOptions: {
+          show: {
+            operation: ['chmod'],
           },
         },
       },
@@ -240,6 +253,15 @@ export class FileManager implements INodeType {
             break;
           }
 
+          case 'chmod': {
+            const targetPath = this.getNodeParameter('targetPath', i) as string;
+            const mode = this.getNodeParameter('mode', i) as number;
+            await fs.chmod(targetPath, mode);
+            inputItems[i].json.targetPath = targetPath;
+            inputItems[i].json.mode = mode;
+            break;
+          }
+
           case 'list': {
             const targetPath = this.getNodeParameter('targetPath', i) as string;
             const files = await fs.readdir(targetPath);
@@ -286,7 +308,7 @@ export class FileManager implements INodeType {
         if (['copy', 'move', 'rename'].includes(operation)) {
           inputItems[i].json.destinationPath = this.getNodeParameter('destinationPath', i) as string;
         }
-        if (['read', 'write', 'append', 'list', 'exists', 'metadata'].includes(operation)) {
+        if (['read', 'write', 'append', 'list', 'exists', 'metadata', 'chmod'].includes(operation)) {
           inputItems[i].json.targetPath = this.getNodeParameter('targetPath', i) as string;
         }
         returnItems.push(inputItems[i]);
