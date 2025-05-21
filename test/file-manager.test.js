@@ -46,3 +46,51 @@ test('remove file', async () => {
   assert.ok(!fs.existsSync(file));
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('write file', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'write.txt');
+  await runNode([{ operation: 'write', targetPath: file, data: 'hello', encoding: 'utf8' }]);
+  assert.strictEqual(fs.readFileSync(file, 'utf8'), 'hello');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('append file', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'append.txt');
+  fs.writeFileSync(file, 'start');
+  await runNode([{ operation: 'append', targetPath: file, data: ' end', encoding: 'utf8' }]);
+  assert.strictEqual(fs.readFileSync(file, 'utf8'), 'start end');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('read file', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'read.txt');
+  fs.writeFileSync(file, 'data');
+  const [[result]] = await runNode([{ operation: 'read', targetPath: file, encoding: 'utf8' }]);
+  assert.strictEqual(result.json.data, 'data');
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('list directory', async () => {
+  const dir = tmpDir();
+  const a = path.join(dir, 'a.txt');
+  const b = path.join(dir, 'b.txt');
+  fs.writeFileSync(a, '1');
+  fs.writeFileSync(b, '2');
+  const [[result]] = await runNode([{ operation: 'list', targetPath: dir }]);
+  assert.deepStrictEqual(result.json.list.sort(), ['a.txt', 'b.txt']);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('exists path', async () => {
+  const dir = tmpDir();
+  const file = path.join(dir, 'exist.txt');
+  fs.writeFileSync(file, 'ok');
+  const [[res1]] = await runNode([{ operation: 'exists', targetPath: file }]);
+  assert.strictEqual(res1.json.exists, true);
+  const [[res2]] = await runNode([{ operation: 'exists', targetPath: path.join(dir, 'no.txt') }]);
+  assert.strictEqual(res2.json.exists, false);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
