@@ -30,18 +30,17 @@
   },
   "engines": {
     "node": ">=18.10",
-    "pnpm": ">=9.1"
+    "npm": ">=9.1"
   },
-  "packageManager": "pnpm@9.1.4",
+  "packageManager": "npm@9.1.4",
   "main": "index.js",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes",
     "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "pnpm build && pnpm lint -c .eslintrc.prepublish.js nodes"
+    "prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes"
   },
   "files": [
     "dist"
