@@ -135,3 +135,23 @@ test('compress and extract directory', async () => {
   assert.strictEqual(fs.readFileSync(extracted, 'utf8'), 'hi');
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('search nested directories', async () => {
+  const dir = tmpDir();
+  const level1 = path.join(dir, 'level1');
+  const level2 = path.join(level1, 'level2');
+  fs.mkdirSync(level2, { recursive: true });
+  const rootFile = path.join(dir, 'root.txt');
+  const midFile = path.join(level1, 'file.txt');
+  const deepFile = path.join(level2, 'deep.txt');
+  fs.writeFileSync(rootFile, '');
+  fs.writeFileSync(midFile, '');
+  fs.writeFileSync(deepFile, '');
+
+  const [[res]] = await runNode([{ operation: 'search', basePath: dir, pattern: '\\.txt$' }]);
+  const paths = res.json.paths;
+  assert.ok(paths.includes(rootFile));
+  assert.ok(paths.includes(midFile));
+  assert.ok(paths.includes(deepFile));
+  fs.rmSync(dir, { recursive: true, force: true });
+});

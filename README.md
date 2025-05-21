@@ -38,12 +38,13 @@ The File Manager node provides the following operations:
 - **list** — Lists the entries of a directory.
 - **exists** — Checks if a path exists.
 - **metadata** — Returns metadata for a file or directory.
+- **search** — Recursively searches for paths matching a pattern.
 
 ### Node Parameters
 
 | Parameter        | Description                                                                         |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| Operation        | The action to perform: `append`, `change permissions`, `compress`, `copy`, `create`, `exists`, `extract`, `list`, `metadata`, `move`, `read`, `remove`, `rename`, `write`. |
+| Operation        | The action to perform: `append`, `change permissions`, `compress`, `copy`, `create`, `exists`, `extract`, `list`, `metadata`, `move`, `read`, `remove`, `rename`, `search`, `write`. |
 | Source Path      | Path to the file or directory to operate on. |
 | Destination Path | Target path for `copy`, `move`, `rename`, `compress`, and `extract` operations. |
 | Recursive        | Whether to delete directories recursively for `remove` operation (default: `true`). |
@@ -51,6 +52,8 @@ The File Manager node provides the following operations:
 | Data             | Content to use for `write` and `append` operations. |
 | Encoding         | File encoding for `read`, `write`, and `append` (default: `utf8`). |
 | Mode             | Numeric mode for `change permissions` (default: `0o644`). |
+| Base Path        | Starting directory for the `search` operation. |
+| Pattern          | Regular expression to match paths for the `search` operation. |
 
 ### Example Usage
 
@@ -60,6 +63,7 @@ The File Manager node provides the following operations:
 4. Enter `/tmp/example-copy.txt` as **Destination Path**.
 5. Execute the workflow to copy the file.
 6. To change permissions, set **Operation** to `change permissions`, provide a **Target Path**, and specify the numeric **Mode** (for example, `0o600`).
+7. To search for `.txt` files recursively, set **Operation** to `search`, specify the **Base Path**, and use a regex **Pattern** like `\\.txt$`.
 
 ## Version History
 

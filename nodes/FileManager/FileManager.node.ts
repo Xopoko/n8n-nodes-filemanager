@@ -44,6 +44,7 @@ export class FileManager implements INodeType {
           { name: 'Read', value: 'read' },
           { name: 'Remove', value: 'remove' },
           { name: 'Rename', value: 'rename' },
+          { name: 'Search', value: 'search' },
           { name: 'Write', value: 'write' },
         ],
         default: 'remove',
@@ -130,6 +131,34 @@ export class FileManager implements INodeType {
         displayOptions: {
           show: {
             operation: ['chmod'],
+          },
+        },
+      },
+      {
+        displayName: 'Base Path',
+        name: 'basePath',
+        type: 'string',
+        default: '',
+        placeholder: '/start/path',
+        description: 'Directory to start searching from',
+        required: true,
+        displayOptions: {
+          show: {
+            operation: ['search'],
+          },
+        },
+      },
+      {
+        displayName: 'Pattern',
+        name: 'pattern',
+        type: 'string',
+        default: '',
+        placeholder: '.*\\.txt$',
+        description: 'Regex pattern to match file paths',
+        required: true,
+        displayOptions: {
+          show: {
+            operation: ['search'],
           },
         },
       },
@@ -333,6 +362,25 @@ export class FileManager implements INodeType {
             break;
           }
 
+          case 'search': {
+            const basePath = this.getNodeParameter('basePath', i) as string;
+            const pattern = this.getNodeParameter('pattern', i) as string;
+            const regex = new RegExp(pattern);
+            const matches: string[] = [];
+            const walk = async (dir: string): Promise<void> => {
+              const entries = await fs.readdir(dir, { withFileTypes: true });
+              for (const entry of entries) {
+                const full = path.join(dir, entry.name);
+                if (regex.test(full)) matches.push(full);
+                if (entry.isDirectory()) await walk(full);
+              }
+            };
+            await walk(basePath);
+            inputItems[i].json.paths = matches;
+            inputItems[i].json.basePath = basePath;
+            break;
+          }
+
           default:
             throw new NodeOperationError(this.getNode(), `Unknown operation "${operation}"`);
         }
@@ -348,6 +396,10 @@ export class FileManager implements INodeType {
         }
         if (['read', 'write', 'append', 'list', 'exists', 'metadata', 'chmod'].includes(operation)) {
           inputItems[i].json.targetPath = this.getNodeParameter('targetPath', i) as string;
+        }
+        if (operation === 'search') {
+          inputItems[i].json.basePath = this.getNodeParameter('basePath', i) as string;
+          inputItems[i].json.pattern = this.getNodeParameter('pattern', i) as string;
         }
         returnItems.push(inputItems[i]);
       } catch (error) {
