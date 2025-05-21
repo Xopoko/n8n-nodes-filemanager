@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'The type of version bump (patch, minor, major)'
+        required: false
+        default: 'patch'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: 'release-${{ github.ref }}'
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+      - name: Bump package version
+        id: bump_version
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          if [[ "$RELEASE_TYPE" != "patch" && "$RELEASE_TYPE" != "minor" && "$RELEASE_TYPE" != "major" ]]; then
+            echo "Error: Invalid RELEASE_TYPE '$RELEASE_TYPE'. Allowed values are 'patch', 'minor', 'major'." >&2
+            exit 1
+          fi
+          new_version=$(npm version "$RELEASE_TYPE" -m "chore(release): %s [skip ci]")
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+          git push --follow-tags
+      - name: Use tag ref
+        id: tag_ref
+        if: startsWith(github.ref, 'refs/tags')
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+      - name: Create GitHub Release
+        if: steps.bump_version.outputs.version || steps.tag_ref.outputs.version
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump_version.outputs.version || steps.tag_ref.outputs.version }}
+          name: ${{ steps.bump_version.outputs.version || steps.tag_ref.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to npm
+        if: steps.bump_version.outputs.version || steps.tag_ref.outputs.version
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
