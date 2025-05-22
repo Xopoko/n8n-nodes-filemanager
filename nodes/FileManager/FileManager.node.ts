@@ -18,6 +18,7 @@ export class FileManager implements INodeType {
     icon: 'fa:folder-open',
     group: ['transform'],
     version: 1,
+    usableAsTool: true,
     description: 'Manage files and folders on disk',
     defaults: { name: 'File Manager' },
     // eslint-disable-next-line n8n-nodes-base/node-class-description-inputs-wrong-regular-node
