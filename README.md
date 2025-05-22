@@ -83,6 +83,12 @@ The File Manager node is marked `usableAsTool: true`, so AI agents can call its 
 - **v0.2.0** — Breaking change: generic operations; auto-detect file or directory. Removed separate file/folder parameters.
 - **v0.1.0** — Initial release with separate file and folder operations.
 
+## Development
+
+Before committing changes, run `npm test` to build the project and execute unit and lint tests. The environment has no network access after setup, so avoid running commands like `npm install`. When adding option arrays with five or more entries, keep them alphabetized by `name`.
+
+See [AGENTS.md](AGENTS.md) for the full development guidelines.
+
 ## Contributing
 
 Contributions welcome! Please open issues and submit pull requests on [GitHub](https://github.com/xopoko/n8n-nodes-filemanager).
