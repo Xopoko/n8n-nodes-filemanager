@@ -65,6 +65,18 @@ The File Manager node provides the following operations:
 6. To change permissions, set **Operation** to `change permissions`, provide a **Target Path**, and specify the numeric **Mode** (for example, `0o600`).
 7. To search for `.txt` files recursively, set **Operation** to `search`, specify the **Base Path**, and use a regex **Pattern** like `\\.txt$`.
 
+## Using with AI
+
+The File Manager node is marked `usableAsTool: true`, so AI agents can call its operations directly. Typical uses include creating or deleting files and folders, copying or moving items, and renaming paths. Always provide explicit path instructions and desired actions to keep operations safe.
+
+### Prompt Examples
+
+```
+• "Create a directory `/tmp/logs` if it does not exist."
+• "Copy `report.csv` to the `archive` folder."
+• "Delete the temporary folder after processing."
+```
+
 ## Version History
 
 - **v0.2.1** — Patch release: version bump.
